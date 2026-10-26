@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="bg"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Водещ на Върколаци</title>
+<style>
+:root{--g:#62c28f;--e:#f0736c;--n:#b69cf2;--bg:#14121f;--card:#211e33;--ink:#ebe7f4;--mu:#9b95b4;--acc:#e9b44c;--bad:#e0605a;--ok:#62c28f;--ln:#34304d;color-scheme:dark}
+@media(prefers-color-scheme:light){:root{--g:#1f7a4d;--e:#c0392b;--n:#7a4fc7;--bg:#f2eff8;--card:#fff;--ink:#1c1930;--mu:#6a6485;--acc:#a86a00;--bad:#c0392b;--ok:#1f7a4d;--ln:#d8d3e8;color-scheme:light}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+#app{max-width:720px;margin:0 auto;padding:12px 12px 80px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0}
+h1,h3{font-family:Georgia,'Times New Roman',serif;margin:0}
+h1{font-size:1.35rem}h3{font-size:1.05rem;margin-bottom:6px}
+.pill{background:var(--acc);color:#1a1405;padding:3px 12px;border-radius:99px;font-weight:700;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--ln);border-left:4px solid var(--acc);border-radius:6px;padding:12px;margin:10px 0}
+.card.warn{border-left-color:var(--bad)}
+.say{font-family:Georgia,serif;font-style:italic;color:var(--mu);margin:2px 0 8px}
+.mu,small{color:var(--mu)}.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;margin:6px 0;color:var(--mu);font-size:.9rem}
+select,input{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--ln);border-radius:6px;padding:9px;font:inherit}
+button{background:var(--card);color:var(--ink);border:1px solid var(--acc);border-radius:6px;padding:10px 14px;font:inherit;cursor:pointer;margin:4px 0}
+button.pri{background:var(--acc);color:#1a1405;font-weight:700;width:100%;padding:14px;margin-top:12px}
+button.ghost{border-color:var(--ln);color:var(--mu)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row{display:grid;grid-template-columns:26px 1fr 1.3fr;gap:6px;align-items:center;margin:4px 0}
+.pl{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:3px 8px;font-size:.88rem}
+.chip.dead{opacity:.45;text-decoration:line-through}
+.win{background:var(--acc);color:#1a1405;border-radius:6px;padding:12px;font-weight:700;text-align:center;margin:8px 0}
+ul{padding-left:18px;margin:6px 0}
+#pk{position:fixed;inset:0;background:rgba(5,4,12,.66);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+#pk[hidden]{display:none}
+.sheet{background:var(--bg);width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:14px 14px 0 0;padding:0 12px 24px;border:1px solid var(--ln)}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding:12px 0 6px}
+.lab{margin:8px 0 2px;color:var(--mu);font-size:.82rem}
+.seg{display:flex;gap:4px}.seg button{flex:1;margin:0;padding:8px 4px;font-size:.88rem;border-color:var(--ln)}
+.seg button.on{background:var(--acc);color:#1a1405;border-color:var(--acc);font-weight:700}
+.it{display:flex;align-items:center;gap:8px;width:100%;text-align:left;margin:3px 0;padding:10px;border-color:var(--ln)}
+.it.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.it .nm{flex:1;font-weight:600}.it b{min-width:2.2em;text-align:right}
+.pickbtn{display:flex;align-items:center;gap:8px;width:100%;margin:0;text-align:left;border-color:var(--ln);font-weight:600}.pickbtn small{margin-left:auto}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}.b-g{background:var(--g)}.b-e{background:var(--e)}.b-n{background:var(--n)}
+.c-g{color:var(--g)}.c-e{color:var(--e)}.c-n{color:var(--n)}
+h4{margin:12px 0 4px;font-size:.95rem}
+</style></head><body><div id="app"></div><div id="pk" hidden onclick="if(event.target===this)closePk()"></div>
+<script>
+const R={
+vill:{n:'Селянин',t:'V',v:1,g:'g',d:'c'},wolf:{n:'Върколак',t:'W',v:-6,g:'e',d:'w'},vamp:{n:'Вампир',t:'P',v:-6,g:'e',d:'v'},
+seer:{n:'Гадателка',t:'V',v:7,g:'g',d:'w'},orac:{n:'Оракул',t:'V',v:7,g:'g',d:'v'},witch:{n:'Вещица',t:'V',v:5,g:'g',d:'w'},
+heal:{n:'Лечител',t:'V',v:3,g:'g',d:'w'},hunt:{n:'Ловец',t:'V',v:3,g:'g',d:'w'},rrh:{n:'Червена шапчица',t:'V',v:3,g:'g',d:'w'},
+cupid:{n:'Купидон',t:'V',v:-2,g:'n',d:'w'},mayor:{n:'Кмет',t:'V',v:2,g:'g',d:'w'},priest:{n:'Свещеник',t:'V',v:3,g:'g',d:'v'},
+cook:{n:'Готвач',t:'V',v:4,g:'g',d:'v'},smith:{n:'Ковач',t:'V',v:2,g:'g',d:'v'},insom:{n:'Неспяща',t:'V',v:3,g:'g',d:'v'},
+slay:{n:'Убиец на вампири',t:'V',v:3,g:'g',d:'v'},inv:{n:'Следователка',t:'V',v:3,g:'g',d:'v'},
+drunk:{n:'Пияница',t:'N',v:-2,g:'n',d:'v'},cat:{n:'Улична котка',t:'V',v:6,g:'g',d:'c'}};
+const WIN={W:'Върколаците печелят',P:'Вампирите печелят',V:'Селото печели'};
+const ST=[['drunk','Пияницо, събуди се. Вече си спомняш истинската си роля.',2,2],
+['cat','Котка, събуди се. Собственикът да посочи нов собственик.',2,99],
+['cupid','Купидон, посочи двама, които се влюбват.',1,1],
+['priest','Свещенико, събуди се. Искаш ли да благословиш някого? (веднъж)',1,99],
+['wolf','Върколаци, събудете се и изберете жертва.',1,99],
+['vamp','Вампири, събудете се и изберете кого да ухапете.',1,99],
+['seer','Гадателке, посочи играч.',1,99],['orac','Оракул, посочи играч.',1,99],
+['witch','Вещице, ето жертвите. Лек? Отрова?',1,99],
+['heal','Лечителю, кого лекуваш? (не същия две нощи подред)',1,99],
+['inv','Следователко, ще разследваш ли 3 съседи? (веднъж)',1,99],
+['slay','Убиецо на вампири, ловуваш ли тази нощ?',1,99],
+['smith','Ковачо, ковеш ли меч? (веднъж)',1,99],
+['hunt','Ловецо, събуди се и заспи отново.',1,1],['rrh','Червена шапчица, събуди се и заспи отново.',1,1],
+['cook','Готвачо, събуди се и заспи отново.',1,1],['mayor','Кмете, събуди се и заспи отново.',1,1],
+['insom','Неспяща, събуди се.',1,99]];
+const K='wolf-gm-v1';
+const fresh=()=>({ph:'setup',nt:1,p:Array.from({length:20},(_,i)=>({n:'Играч '+(i+1),r:'vill'})),hid:'vill',nd:{},log:[],cat:{o:null,x:0},pend:[],dog:0,dogA:1,mayor:'',lv:null,cf:0});
+let S=(()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}})()||fresh();
+const P=()=>S.p,esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const al=()=>P().map((p,i)=>p.a?i:-1).filter(i=>i>=0);
+const nm=i=>P()[i].n,rt=i=>R[P()[i].r].t,ev=i=>rt(i)==='W'||rt(i)==='P',rt2=i=>rt(i)==='N'?'V':rt(i);
+const who=r=>al().filter(i=>P()[i].r===r),lg=s=>S.log.push({n:S.nt,s});
+function draw(){const over=!!win();app.innerHTML=head()+(over?overV():S.ph==='setup'?setupV():S.ph==='night'?nightV():dayV())+(S.ph==='setup'?'':stat())+foot();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function win(){if(S.ph==='setup')return'';const a=al();if(!a.length)return'Равенство – всички са мъртви';
+if(a.length===2&&P()[a[0]].lov===a[1]&&rt2(a[0])!==rt2(a[1]))return'Любовната двойка печели';
+const t=new Set(a.map(rt2));return t.size===1?WIN[[...t][0]]:''}
+function head(){const w=win();return`<header><h1>🐺 Водещ на Върколаци</h1><span class=pill>${S.ph==='setup'?'Подготовка':(S.ph==='night'?'Нощ ':'Ден ')+S.nt}</span></header>`+(w?`<div class=win>🏆 ${w}</div>`:'')}
+/* ---------- подготовка ---------- */
+function setupV(){const rs=P().map(p=>p.r),has=r=>rs.includes(r),cnt=r=>rs.filter(x=>x===r).length;
+const sum=rs.reduce((s,r)=>s+R[r].v,0)+(has('drunk')?R[S.hid].v:0)+(S.dog?2:0),w=[];
+if(has('priest')&&!(has('smith')||has('slay')||has('witch')))w.push('Свещеникът иска Ковач, Убиец на вампири или Вещица.');
+if(has('rrh')&&!has('hunt'))w.push('Червена шапчица се слага само с Ловец.');
+if(has('cupid')&&has('drunk'))w.push('Купидон и Пияница заедно: Купидонът действа само в нощ 1.');
+if(cnt('wolf')&&cnt('vamp')&&(cnt('wolf')<3||cnt('vamp')<3))w.push('При три отбора са нужни поне 3 върколака и 3 вампира.');
+if(!has('wolf')&&!has('vamp'))w.push('Няма нито върколаци, нито вампири.');
+if(cnt('cat')>1||cnt('drunk')>1)w.push('Котката и Пияницата са по една карта.');
+return`<section class=card><h3>Играчи по ред на сядане</h3><p class=mu>Редът е важен за Безсънната и Следователя. Играчи: <input type=number min=4 max=50 value=${P().length} onchange="setLen(this.value)" style="width:90px"></p>`+
+P().map((x,i)=>`<div class=row><span class=mu>${i+1}</span><input value="${esc(x.n)}" onchange="P()[${i}].n=this.value;draw()">${pb(i)}</div>`).join('')+`</section>`+
+(has('drunk')?`<section class=card><h3>Скрита карта за Пияницата</h3><p class=mu>Карта, оставена настрана с лицето надолу. Тя е ролята му от нощ 2.</p>${pb('hid')}</section>`:'')+
+`<section class=card><label><input type=checkbox style="width:auto" ${S.dog?'checked':''} onchange="S.dog=this.checked?1:0;draw()"> Играем с Куче пазач (+2, кметът е избран открито)</label>
+<p class=mu>${Object.keys(R).filter(k=>cnt(k)).map(k=>`<span class="c-${R[k].g}">${R[k].n} ×${cnt(k)}</span>`).join(' · ')||'Няма избрани роли'}</p><p>Карти: <b>${rs.length}</b> · Сбор на баланса: <b class="${sum>=-3&&sum<=3?'ok':'bad'}">${sum>0?'+':''}${sum}</b></p><p class=mu>Начинаещи: +1 до +3. Опитни: −1 до −3.</p>${w.length?'<ul class=bad>'+w.map(x=>`<li>${x}</li>`).join('')+'</ul>':''}</section>
+<button class=pri onclick="start()">Започни играта – нощ 1</button>`}
+function setLen(v){v=Math.max(4,Math.min(50,+v||20));while(P().length<v)P().push({n:'Играч '+(P().length+1),r:'vill'});S.p.length=v;draw()}
+function start(){S.p.forEach(x=>{x.a=1;x.u={};x.bl=0;x.bt=0;x.lov=null});const c=S.p.findIndex(x=>x.r==='cat');
+S.cat={o:c<0?null:c,x:0};S.ph='night';S.nt=1;S.nd={};S.log=[];S.pend=[];S.lv=null;draw()}
+/* ---------- нощ ---------- */
+const used='<p class=mu>Вече е използвано.</p>';
+const opt=(k,ex)=>`<option value="">— никого —</option>`+al().filter(i=>i!==ex).map(i=>`<option value="${i}"${S.nd[k]===i?' selected':''}>${esc(nm(i))}</option>`).join('');
+const sel=(k,l,ex)=>`<label>${l}<select onchange="nd('${k}',this.value)">${opt(k,ex)}</select></label>`;
+function nd(k,v){S.nd[k]=v===''?null:+v;draw()}
+const th=x=>x==null?'':ev(x)?'<p class=ok><b>👍 Зъл (върколак или вампир)</b></p>':'<p class=mu><b>👎 Не е</b></p>';
+function actv(i){const r=P()[i].r,d=S.nd;
+if(S.nt>=2&&!S.cat.x&&S.cat.o===i)return 1;
+if(['wolf','vamp','seer','orac','heal'].includes(r))return 1;
+if(r==='witch')return d.wh!=null||d.wp!=null;if(r==='inv')return d.i1!=null;if(r==='slay')return d.slay!=null;
+if(r==='priest')return d.pri!=null;if(r==='smith')return d.forge!=null;if(r==='cupid')return S.nt===1;
+return d.forge!=null&&d.sw!=null&&i===d.forge}
+function body(k,i0){const d=S.nd,u=i0!=null?P()[i0].u:{};
+switch(k){
+case'drunk':return`<button onclick="reveal()">Покажи му скритата карта: ${R[S.hid].n}</button>`;
+case'cat':return`<p class=mu>Текущ собственик: <b>${esc(nm(S.cat.o))}</b></p>`+sel('cat','Нов собственик',S.cat.o)+th(null);
+case'cupid':return sel('c1','Влюбен 1')+sel('c2','Влюбен 2');
+case'priest':return u.priest?used:sel('pri','Благославя');
+case'wolf':return sel('wolf','Жертва на върколаците');
+case'vamp':return sel('vamp','Ухапан от вампирите');
+case'seer':case'orac':return sel(k,'Посочен играч')+th(d[k]);
+case'witch':return`<p>Върколаци: <b>${d.wolf!=null?esc(nm(d.wolf)):'—'}</b> · Вампири: <b>${d.vamp!=null?esc(nm(d.vamp)):'—'}</b></p>`+(u.heal?'<p class=mu>Лекът е изразходван.</p>':sel('wh','Лек върху'))+(u.poison?'<p class=mu>Отровата е изразходвана.</p>':sel('wp','Отрова върху'));
+case'heal':return sel('hl','Лекува (не същия като предишната нощ)');
+case'inv':return u.inv?used:sel('i1','Съсед 1')+sel('i2','Съсед 2')+sel('i3','Съсед 3')+([d.i1,d.i2,d.i3].some(x=>x!=null)?th([d.i1,d.i2,d.i3].find(x=>x!=null&&ev(x))):'');
+case'slay':return sel('slay','Ловува върху');
+case'smith':return sel('forge','Меч за')+(d.forge!=null?sel('sw','Получателят убива'):'');
+case'insom':{const a=al(),p=a.indexOf(i0),L=a[(p-1+a.length)%a.length],Rr=a[(p+1)%a.length];
+return actv(L)||actv(Rr)?'<p class=ok><b>👍 Поне един съсед е бил активен</b></p>':'<p class=mu><b>👎 И двамата съседи са неактивни</b></p>'}}
+return'<p class=mu>Само отбележи, няма избор.</p>'}
+function nightV(){let h='';
+if(S.nt===1&&P().some(p=>p.r==='drunk'))h+=`<section class=card><h3>🎭 Скритата карта на Пияницата</h3><p class=say>Извикай и ролята „${R[S.hid].n}“, сякаш е в играта. Никой не отваря очи.</p></section>`;
+ST.forEach(([k,say,a,b])=>{if(S.nt<a||S.nt>b)return;
+const w=k==='cat'?(S.cat.o!=null&&!S.cat.x&&P()[S.cat.o].a?[S.cat.o]:[]):who(k);if(!w.length)return;
+if(k==='slay'&&P()[w[0]].u.lost)return;if(k==='smith'&&P()[w[0]].u.smith)return;
+h+=`<section class=card><h3>${R[k].n} <small>${w.map(i=>esc(nm(i))).join(', ')}</small></h3><p class=say>«${say}»</p>${body(k,w[0])}</section>`});
+return h+`<button class=pri onclick="dawn()">☀️ Обяви сутринта</button>`}
+function reveal(){const i=who('drunk')[0];P()[i].r=S.hid;lg(`Пияницата ${nm(i)} вече е: ${R[S.hid].n}`);if(S.hid==='cat')S.cat={o:i,x:0};draw()}
+function kill(i,w){const x=P()[i];if(!x.a)return;x.a=0;lg(`☠ ${x.n} (${R[x.r].n}): ${w}`);
+if(S.cat.o===i&&S.ph==='day')S.cat.x=1;if(x.lov!=null)kill(x.lov,'разбито сърце');if(x.r==='hunt')S.pend.push(i)}
+function dawn(){if(S.ph!=='night'||win())return;const d=S.nd,p=P(),dead=[],ix=r=>who(r)[0];S.ph='day';
+if(d.c1!=null&&d.c2!=null&&d.c1!==d.c2){p[d.c1].lov=d.c2;p[d.c2].lov=d.c1;lg(`Купидон: ${nm(d.c1)} ❤ ${nm(d.c2)}`)}
+if(d.pri!=null){p[d.pri].bl=1;p[ix('priest')].u.priest=1;lg(`Свещеникът благославя ${nm(d.pri)}`)}
+const hit=(t,w)=>{if(t==null||!p[t].a||p[t].bl||dead.some(x=>x[0]===t))return 0;dead.push([t,w]);return 1};
+if(d.wp!=null){p[ix('witch')].u.poison=1;hit(d.wp,'отровен от Вещицата')}
+if(d.wh!=null)p[ix('witch')].u.heal=1;
+if(d.slay!=null&&hit(d.slay,'убит от Убиеца на вампири')&&!ev(d.slay)){p[ix('slay')].u.lost=1;lg('Убиецът на вампири уби невинен и губи способността си')}
+if(d.forge!=null){p[ix('smith')].u.smith=1;hit(d.sw,'убит с меча')}
+const hOk=()=>{const h=ix('hunt');return h!=null&&!dead.some(x=>x[0]===h)};
+const prot=t=>d.hl===t||d.wh===t||p[t].r==='cook'||(p[t].r==='rrh'&&hOk());
+if(d.wolf!=null&&p[d.wolf].a&&!p[d.wolf].bl&&!prot(d.wolf))hit(d.wolf,'изяден от върколаците');
+if(d.vamp!=null&&p[d.vamp].a&&!p[d.vamp].bl&&!prot(d.vamp)){p[d.vamp].bt=1;lg(`🩸 ${nm(d.vamp)} е ухапан (умира в края на деня)`)}
+if(d.cat!=null&&S.nt>=2){const t=d.cat;if(ev(t)&&hit(t,'изгонен от котката'))S.cat.x=1;else S.cat.o=t}
+if(!dead.length)lg('Тази нощ никой не умря сутринта');
+dead.forEach(([t,w])=>kill(t,w));draw()}
+/* ---------- ден ---------- */
+function shoot(h){if(win())return;const v=document.getElementById('h'+h).value;if(v==='')return;S.pend=S.pend.filter(x=>x!==h);kill(+v,'застрелян от Ловеца');draw()}
+function lynch(){if(S.lv==null||win())return;if(S.dog&&S.dogA&&S.mayor===S.lv){alert('Кметът не може да бъде линчуван, докато Кучето пазач е живо.');return}
+kill(S.lv,'линчуван');S.lv=null;draw()}
+function endDay(){if(S.ph!=='day'||win())return;P().forEach((x,i)=>{if(x.a&&x.bt){x.bt=0;kill(i,'ухапване от вампир')}});S.nt++;S.ph='night';S.nd={};S.lv=null;draw()}
+const aopt=v=>`<option value="">— избери —</option>`+al().map(i=>`<option value="${i}"${v===i?' selected':''}>${esc(nm(i))}</option>`).join('');
+function dayV(){
+const hs=S.pend.map(h=>`<section class="card warn"><h3>🏹 ${esc(nm(h))} (Ловец) стреля</h3><select id=h${h}>${aopt(null)}</select><button onclick="shoot(${h})">Стреляй</button></section>`).join('');
+const today=S.log.filter(l=>l.n===S.nt).map(l=>`<li>${esc(l.s)}</li>`).join('');
+const bit=P().filter(x=>x.a&&x.bt).map(x=>esc(x.n));
+return`<section class=card><h3>Тази сутрин</h3><ul>${today||'<li class=mu>Нищо</li>'}</ul>${bit.length?`<p class=mu>Ухапани, умират в края на деня: ${bit.join(', ')}</p>`:''}</section>`+hs+
+`<section class=card><h3>Линчуване</h3><p class=mu>Номинация + втора номинация, защита, после гласуване. Палци нагоре повече от палци надолу. Равенство: кметът брои двойно.</p>
+<select onchange="S.lv=this.value===''?null:+this.value;draw()">${aopt(S.lv)}</select><button onclick="lynch()">Линчувай</button>
+${S.dog?`<label>Кмет<select onchange="S.mayor=this.value===''?'':+this.value;draw()">${aopt(S.mayor)}</select></label><label><input type=checkbox style="width:auto" ${S.dogA?'checked':''} onchange="S.dogA=this.checked?1:0;draw()"> Кучето пазач е живо</label>`:''}</section>
+<button class=pri onclick="endDay()">🌙 Край на деня – следваща нощ</button>`}
+/* ---------- общо ---------- */
+function stat(){return`<section class=card><h3>Играчи</h3><div class=pl>`+P().map((x,i)=>`<span class="chip${x.a?'':' dead'}">${i+1}. ${esc(x.n)} <small class="c-${R[x.r].g}">${R[x.r].n}${x.bl?' ✨':''}${x.bt?' 🩸':''}${x.lov!=null?' ❤':''}${S.cat.o===i&&!S.cat.x&&S.nt>=2?' 🐈':''}</small></span>`).join('')+`</div></section>`}
+function foot(){return(S.ph==='setup'?'':`<details class=card><summary>Журнал на играта</summary><ul>${S.log.slice().reverse().map(l=>`<li><small>${S.ph==='setup'?'':'Н'+l.n}</small> ${esc(l.s)}</li>`).join('')||'<li class=mu>Празен</li>'}</ul></details>`)+
+(win()?'':`<button class=ghost onclick="newGame()">${S.cf?'Сигурен ли си? Натисни пак, за да изтриеш играта':'Нова игра'}</button>`)}
+function newGame(f){if(!f&&!S.cf){S.cf=1;draw();setTimeout(()=>{S.cf=0;draw()},4000);return}S=fresh();try{localStorage.removeItem(K)}catch(e){}draw()}
+function overV(){return`<section class=card><h3>Играта приключи</h3><p>${esc(win())}</p><button class=pri onclick="newGame(1)">Нова игра</button></section>`}
+/* ---------- избор на роля ---------- */
+let PK=null;const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const UI=()=>S.ui||(S.ui={sort:'grp',deck:'all'}),sg=v=>(v>0?'+':'')+v,DK={w:'Върколаци',v:'Вампири',c:'обща'};
+function pb(i){const x=R[i==='hid'?S.hid:P()[i].r];return`<button class=pickbtn onclick="openPk('${i}')"><span class="dot b-${x.g}"></span><span class="c-${x.g}">${x.n}</span><small>${sg(x.v)}</small></button>`}
+function openPk(i){PK={i:i==='hid'?'hid':+i,q:''};showPk()}
+function closePk(){PK=null;const o=document.getElementById('pk');o.hidden=true;o.innerHTML=''}
+function setUI(k,v){UI()[k]=v;save();showPk()}
+function pick(k){if(PK.i==='hid')S.hid=k;else P()[PK.i].r=k;closePk();draw()}
+function showPk(){const o=document.getElementById('pk'),u=UI();
+const seg=(k,a)=>`<div class=seg>`+a.map(([v,l])=>`<button class="${u[k]===v?'on':''}" onclick="setUI('${k}','${v}')">${l}</button>`).join('')+`</div>`;
+o.innerHTML=`<div class=sheet role=dialog aria-modal=true><div class=sh><b>Роля за ${PK.i==='hid'?'скритата карта':esc(nm0(PK.i))}</b><button class=ghost onclick="closePk()">✕ Затвори</button></div>
+<p class=lab>Колода (добрите роли важат и в двата режима)</p>${seg('deck',[['all','Всички'],['w','Върколаци'],['v','Вампири']])}
+<p class=lab>Подредба</p>${seg('sort',[['grp','Групи'],['vd','Стойност ↓'],['va','Стойност ↑'],['az','А–Я']])}
+<input id=pq placeholder="Търси роля…" value="${esc(PK.q)}" oninput="PK.q=this.value;pkList()" style="margin-top:8px"><div id=pl></div></div>`;
+o.hidden=false;pkList()}
+const nm0=i=>P()[i].n,cm=(a,b)=>R[a].n.localeCompare(R[b].n,'bg');
+function pkList(){const u=UI(),q=PK.q.trim().toLowerCase(),cur=PK.i==='hid'?S.hid:P()[PK.i].r;
+const ks=Object.keys(R).filter(k=>(u.deck==='all'||R[k].d==='c'||R[k].d===u.deck)&&(PK.i!=='hid'||k!=='drunk')&&R[k].n.toLowerCase().includes(q));
+ks.sort({grp:(a,b)=>R[b].v-R[a].v||cm(a,b),vd:(a,b)=>R[b].v-R[a].v||cm(a,b),va:(a,b)=>R[a].v-R[b].v||cm(a,b),az:cm}[u.sort]);
+const it=k=>`<button class="it${k===cur?' on':''}" onclick="pick('${k}')"><span class="dot b-${R[k].g}"></span><span class="nm c-${R[k].g}">${R[k].n}</span><small>${DK[R[k].d]}</small><b>${sg(R[k].v)}</b></button>`;
+let h='';
+if(u.sort==='grp')[['g','Добри'],['e','Лоши'],['n','Неутрални']].forEach(([g,l])=>{const a=ks.filter(k=>R[k].g===g);if(a.length)h+=`<h4 class="c-${g}">${l} <small>(${a.length})</small></h4>`+a.map(it).join('')});
+else h=ks.map(it).join('');
+document.getElementById('pl').innerHTML=h||'<p class=mu>Няма такава роля.</p>'}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&PK)closePk()});
+draw();
+</script></body></html>
